@@ -13,7 +13,7 @@ class MovieAdmin(admin.ModelAdmin):
     list_display = ('title', 'release_year', 'duration', 'rating')
     list_filter = ('release_year', 'genres')
     search_fields = ('title', 'description')
-    filter_horiszontal = ('genres',)
+    filter_horizontal = ('genres',)
 
 @admin.register(UserSelection)
 class UserSelectionAdmin(admin.ModelAdmin):
