@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ movie.title }} - CinemaMood{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Левая колонка: Постер и информация -->
+    <div class="col-md-4">
+        <div class="card mb-4">
+            {% if movie.poster_url %}
+            <img src="{{ movie.poster_url }}" class="card-img-top" alt="{{ movie.title }}">
+            {% else %}
+            <div class="card-img-top bg-secondary d-flex align-items-center justify-content-center"
+                style="height: 400px;">
+                <i class="bi bi-film text-white" style="font-size: 5rem;"></i>
+            </div>
+            {% endif %}
+            <div class="card-body">
+                <h5 class="card-title">{{ movie.title }}</h5>
+                <p class="card-text">
+                    <strong>Год:</strong> {{ movie.release_year }}<br>
+                    <strong>Длительность:</strong> {{ movie.duration_hours }}<br>
+                    <strong>Рейтинг:</strong> ⭐ {{ movie.rating }}/10
+                </p>
+
+                <div class="mb-3">
+                    <h6>Жанры:</h6>
+                    {% for genre in movie.genres.all %}
+                    <span class="badge bg-primary me-1">{{ genre.name }}</span>
+                    {% endfor %}
+                </div>
+
+                <a href="{% url 'catalog' %}" class="btn btn-outline-secondary w-100">
+                    <i class="bi bi-arrow-left"></i> Назад в каталог
+                </a>
+            </div>
+        </div>
+
+        <!-- Быстрый подбор -->
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">⏰ Подобрать похожие</h5>
+                <p>Хотите найти фильмы похожего настроения?</p>
+                <a href="{% url 'home' %}" class="btn btn-primary w-100">
+                    <i class="bi bi-magic"></i> Подобрать фильм
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Правая колонка: Описание -->
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <h2 class="card-title">{{ movie.title }}</h2>
+                <div class="mb-4">
+                    <span class="badge bg-success fs-6">{{ movie.release_year }} год</span>
+                    <span class="badge bg-info fs-6">{{ movie.duration_hours }}</span>
+                    <span class="badge bg-warning fs-6">⭐ {{ movie.rating }}/10</span>
+                </div>
+
+                <h4>📖 Описание</h4>
+                <p class="lead">{{ movie.description|linebreaks }}</p>
+
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h5><i class="bi bi-clock"></i> Время просмотра</h5>
+                                <p class="fs-4">{{ movie.duration_hours }}</p>
+                                <small class="text-muted">
+                                    {% if movie.duration < 90 %}Короткометражка{% elif movie.duration < 120
+                                        %}Стандартная длина{% else %}Эпическое полотно{% endif %} </small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h5><i class="bi bi-star"></i> Оценка</h5>
+                                <p class="fs-4">⭐ {{ movie.rating }}/10</p>
+                                <div class="progress" style="height: 10px;">
+                                    <div class="progress-bar bg-warning"
+                                        style="width: {{ movie.rating|floatformat:0 }}0%"></div>
+                                </div>
+                                <small class="text-muted">
+                                    {% if movie.rating > 8.5 %}Шедевр{% elif movie.rating > 7 %}Хороший фильм{% elif
+                                    movie.rating > 5 %}Средний{% else %}На любителя{% endif %}
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Похожие фильмы (заглушка) -->
+                <div class="mt-5">
+                    <h4><i class="bi bi-collection-play"></i> Похожие фильмы</h4>
+                    <div class="alert alert-info">
+                        <p>Система рекомендаций появится после интеграции с TMDB API.</p>
+                        <a href="{% url 'catalog' %}" class="btn btn-sm btn-info">Посмотреть все фильмы</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
