@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+
+{% block title %}Аналитика фильмов - CinemaMood{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stat-card {
+        transition: transform 0.3s;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .chart-container {
+        background: white;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1>📊 Аналитика фильмов</h1>
+        <p class="lead">Статистика и визуализация данных вашей кинотеки</p>
+    </div>
+</div>
+
+<!-- Статистика -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card stat-card text-white bg-primary">
+            <div class="card-body text-center">
+                <h1 class="display-4">{{ stats.total_movies }}</h1>
+                <p class="card-text">Всего фильмов</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card stat-card text-white bg-success">
+            <div class="card-body text-center">
+                <h1 class="display-4">{{ stats.total_genres }}</h1>
+                <p class="card-text">Жанров</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card stat-card text-white bg-warning">
+            <div class="card-body text-center">
+                <h1 class="display-4">{{ stats.avg_movie_duration|floatformat:0 }}</h1>
+                <p class="card-text">Средняя длительность (мин)</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card stat-card text-white bg-info">
+            <div class="card-body text-center">
+                <h1 class="display-4">{{ stats.avg_movie_rating|floatformat:1 }}</h1>
+                <p class="card-text">Средний рейтинг</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- График -->
+<div class="chart-container">
+    <h3 class="mb-4"><i class="bi bi-bar-chart"></i> Распределение фильмов по годам</h3>
+    {% if chart_image %}
+    <div class="text-center">
+        <img src="data:image/png;base64,{{ chart_image }}" alt="График распределения фильмов по годам" class="img-fluid"
+            style="max-width: 100%;">
+        <p class="text-muted mt-2">Анализ базы данных с использованием Matplotlib</p>
+    </div>
+    {% else %}
+    <div class="alert alert-warning">
+        <h4><i class="bi bi-exclamation-triangle"></i> Нет данных для анализа</h4>
+        <p>Добавьте фильмы в базу данных, чтобы увидеть статистику.</p>
+        <a href="/admin/movies/movie/add/" class="btn btn-warning">Добавить фильм</a>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Пример данных (если есть) -->
+{% if df_head %}
+<div class="chart-container mt-4">
+    <h3 class="mb-4"><i class="bi bi-table"></i> Пример данных (первые 5 записей)</h3>
+    <div class="table-responsive">
+        {{ df_head|safe }}
+    </div>
+</div>
+{% endif %}
+
+<!-- Описание аналитики -->
+<div class="card mt-4">
+    <div class="card-body">
+        <h4><i class="bi bi-info-circle"></i> О нашей аналитике</h4>
+        <p>Система аналитики CinemaMood использует следующие технологии:</p>
+        <ul>
+            <li><strong>Pandas</strong> - обработка и анализ данных</li>
+            <li><strong>Matplotlib</strong> - построение графиков и визуализация</li>
+            <li><strong>Django ORM</strong> - сбор статистики из базы данных</li>
+        </ul>
+        <p>В будущем мы планируем добавить:</p>
+        <ul>
+            <li>Анализ популярных жанров по сезонам</li>
+            <li>Рекомендации на основе просмотров пользователей</li>
+            <li>Сравнение с глобальными трендами кино</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}
