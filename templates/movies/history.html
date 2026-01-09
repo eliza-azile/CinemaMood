@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+
+{% block title %}История подборов - CinemaMood{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1>📖 История ваших подборов</h1>
+        <p class="lead">Здесь хранятся все ваши поиски фильмов</p>
+    </div>
+</div>
+
+{% if user.is_authenticated %}
+{% if selections %}
+<div class="table-responsive">
+    <table class="table table-hover">
+        <thead class="table-dark">
+            <tr>
+                <th>Дата и время</th>
+                <th>Настроение</th>
+                <th>Доступное время</th>
+                <th>Найдено фильмов</th>
+                <th>Действия</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for selection in selections %}
+            <tr>
+                <td>
+                    <strong>{{ selection.search_timestamp|date:"d.m.Y" }}</strong><br>
+                    <small class="text-muted">{{ selection.search_timestamp|date:"H:i" }}</small>
+                </td>
+                <td>
+                    <span class="badge bg-info fs-6">
+                        {% if selection.selected_mood == 'comedy' %}😄 Комедийное
+                        {% elif selection.selected_mood == 'drama' %}🎭 Драматическое
+                        {% elif selection.selected_mood == 'adventure' %}🧭 Приключенческое
+                        {% elif selection.selected_mood == 'romance' %}💕 Романтическое
+                        {% elif selection.selected_mood == 'thriller' %}🔪 Триллер
+                        {% elif selection.selected_mood == 'fantasy' %}🧙 Фэнтези
+                        {% elif selection.selected_mood == 'action' %}💥 Боевик
+                        {% elif selection.selected_mood == 'sci_fi' %}🚀 Научная фантастика
+                        {% else %}{{ selection.selected_mood }}{% endif %}
+                    </span>
+                </td>
+                <td>
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-clock me-2"></i>
+                        <span>{{ selection.available_time }} мин</span>
+                    </div>
+                </td>
+                <td>
+                    {% if selection.matched_movies.count > 0 %}
+                    <span class="badge bg-success">{{ selection.matched_movies.count }}</span>
+                    {% else %}
+                    <span class="badge bg-secondary">0</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if selection.matched_movies.count > 0 %}
+                    <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal"
+                        data-bs-target="#modal{{ selection.id }}">
+                        <i class="bi bi-eye"></i> Показать
+                    </button>
+                    {% else %}
+                    <span class="text-muted">Нет фильмов</span>
+                    {% endif %}
+                </td>
+            </tr>
+
+            <!-- Модальное окно с фильмами -->
+            {% if selection.matched_movies.count > 0 %}
+            <div class="modal fade" id="modal{{ selection.id }}" tabindex="-1">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Подбор от {{ selection.search_timestamp|date:"d.m.Y H:i" }}</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p>
+                                <strong>Настроение:</strong> {{ selection.selected_mood }}<br>
+                                <strong>Время:</strong> {{ selection.available_time }} минут<br>
+                                <strong>Найдено фильмов:</strong> {{ selection.matched_movies.count }}
+                            </p>
+
+                            <div class="row">
+                                {% for movie in selection.matched_movies.all %}
+                                <div class="col-md-6 mb-3">
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <h6>{{ movie.title }}</h6>
+                                            <p class="mb-1">
+                                                <small>{{ movie.release_year }} • {{ movie.duration_hours }} • ⭐ {{
+                                                    movie.rating }}</small>
+                                            </p>
+                                            <a href="{% url 'movie_detail' movie.id %}"
+                                                class="btn btn-sm btn-outline-primary mt-2">Подробнее</a>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="alert alert-info mt-4">
+    <h5><i class="bi bi-info-circle"></i> Информация</h5>
+    <p>История хранится только для авторизованных пользователей. Гости могут использовать сервис, но их подборы не
+        сохраняются.</p>
+</div>
+
+{% else %}
+<div class="text-center py-5">
+    <div class="mb-4">
+        <i class="bi bi-clock-history" style="font-size: 4rem; color: #6c757d;"></i>
+    </div>
+    <h3>История пуста</h3>
+    <p class="lead mb-4">Вы еще не делали подборов фильмов через наш сервис.</p>
+    <a href="{% url 'home' %}" class="btn btn-primary btn-lg">
+        <i class="bi bi-magic"></i> Сделать первый подбор
+    </a>
+</div>
+{% endif %}
+{% else %}
+<div class="alert alert-warning text-center py-5">
+    <h3><i class="bi bi-exclamation-triangle"></i> Требуется авторизация</h3>
+    <p class="lead">История подборов доступна только для авторизованных пользователей.</p>
+    <div class="mt-4">
+        <a href="/admin/login/?next={{ request.path }}" class="btn btn-primary me-2">
+            <i class="bi bi-box-arrow-in-right"></i> Войти
+        </a>
+        <a href="{% url 'home' %}" class="btn btn-outline-primary">
+            <i class="bi bi-house"></i> На главную
+        </a>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
