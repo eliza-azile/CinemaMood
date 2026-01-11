@@ -3,7 +3,16 @@ from django.http import HttpResponse
 
 
 def home(request):
-    return HttpResponse('<h1>Добро пожаловать в CinemaMood!</h1><p><a href="/catalog/">Каталог</a> | <a href="/health/">Health Check</a></p>')
+    from django.http import HttpResponse
+    return HttpResponse("""
+        <h1>🎬 CinemaMood - Главная страница</h1>
+        <p>Добро пожаловать в сервис оценки фильмов!</p>
+        <ul>
+            <li><a href="/catalog/">Каталог фильмов</a></li>
+            <li><a href="/health/">Проверка работы</a></li>
+            <li><a href="/admin/">Админка</a></li>
+        </ul>
+    """)
 
 def catalog(request):
     return HttpResponse('<h1>Каталог фильмов</h1><p>Список всех фильмов</p>')
