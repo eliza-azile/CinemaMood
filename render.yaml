@@ -1,0 +1,14 @@
+﻿services:
+  - type: web
+    name: cinemamood
+    env: python
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn config.wsgi:application"
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+    healthCheckPath: /health/
+    autoDeploy: true
+    plan: free

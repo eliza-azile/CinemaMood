@@ -1,40 +1,27 @@
-# Python
+# Файлы окружения
+.env
+.env.local
+
+# Базы данных
+*.sqlite3
+*.db
+
+# Питон
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
 .Python
-*.pyc
-*.pyo
-*.pyd
-
-# Django
-*.log
-local_settings.py
-db.sqlite3
-db.sqlite3-journal
-
-# Virtual Environment
-venv/
 env/
-.venv/
-.env
-cinema_venv/
-../cinema_venv/
+venv/
+ENV/
+
+# Статические файлы (после сборки)
+staticfiles/
+
+# Медиа файлы (если не храните в Git)
+media/
 
 # IDE
-.vs/
-.idea/
 .vscode/
-*.swp
-*.swo
-.DS_Store
-
-# Django static/media
-/staticfiles/
-/media/
-
-# Windows
-Thumbs.db
-ehthumbs.db
-Desktop.ini
+.idea/
