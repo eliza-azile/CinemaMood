@@ -1,0 +1,252 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Результаты подбора - CinemaMood{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Заголовок с параметрами поиска -->
+    <div class="card bg-light mb-5 shadow">
+        <div class="card-body">
+            <h1 class="display-6 mb-4">🎭 Результаты подбора</h1>
+            <div class="row mt-3">
+                <div class="col-md-4 mb-3">
+                    <p><strong>Ваше настроение:</strong><br>
+                        <span class="badge bg-primary fs-6 mt-1">{{ selected_mood }}</span>
+                    </p>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <p><strong>Доступное время:</strong><br>
+                        <span class="badge bg-secondary fs-6 mt-1">{{ available_time }} минут</span>
+                    </p>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <p><strong>Найдено фильмов:</strong><br>
+                        <span class="badge bg-success fs-6 mt-1">{{ movies|length }}</span>
+                    </p>
+                </div>
+            </div>
+
+            {% if selected_genres %}
+            <div class="mt-3">
+                <strong>Выбранные жанры:</strong><br>
+                <div class="mt-2">
+                    {% for genre in selected_genres %}
+                    <span class="badge bg-info me-1 mb-1">{{ genre.name }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="mt-4">
+                <a href="{% url 'home' %}" class="btn btn-primary">
+                    <i class="bi bi-arrow-left"></i> Сделать новый подбор
+                </a>
+                <a href="{% url 'catalog' %}" class="btn btn-outline-primary ms-2">
+                    <i class="bi bi-film"></i> Посмотреть все фильмы
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Результаты -->
+    {% if movies %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <h3 class="mb-4">🎬 Подходящие фильмы:</h3>
+            <p class="text-muted">Мы подобрали фильмы, соответствующие вашему настроению и временным возможностям.</p>
+        </div>
+
+        {% for movie in movies %}
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card h-100 movie-card shadow-sm">
+                {% if movie.poster_url %}
+                <img src="{{ movie.poster_url }}" class="card-img-top" alt="{{ movie.title }}"
+                    style="height: 300px; object-fit: cover;">
+                {% else %}
+                <div class="card-img-top bg-secondary d-flex align-items-center justify-content-center"
+                    style="height: 300px;">
+                    <i class="bi bi-film text-white" style="font-size: 4rem;"></i>
+                </div>
+                {% endif %}
+
+                <div class="card-body">
+                    <h5 class="card-title">{{ movie.title }}</h5>
+
+                    <div class="mb-2">
+                        <span class="badge bg-primary">{{ movie.release_year }}</span>
+                        <span class="badge bg-secondary">{{ movie.duration_hours }}</span>
+                        <span class="badge bg-warning text-dark">⭐ {{ movie.rating }}</span>
+                    </div>
+
+                    <p class="card-text">{{ movie.description|truncatechars:120 }}</p>
+
+                    <div class="mb-3">
+                        <small class="text-muted">Жанры:</small><br>
+                        {% for genre in movie.genres.all|slice:":3" %}
+                        <span class="badge bg-light text-dark me-1 mb-1">{{ genre.name }}</span>
+                        {% endfor %}
+                        {% if movie.genres.all.count > 3 %}
+                        <span class="badge bg-light text-dark">+{{ movie.genres.all.count|add:"-3" }}</span>
+                        {% endif %}
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'movie_detail' movie.id %}" class="btn btn-outline-primary">
+                            <i class="bi bi-info-circle"></i> Подробнее
+                        </a>
+                        <button class="btn btn-outline-success"
+                            onclick="alert('Фильм {{ movie.title }} добавлен в ваши избранные!')">
+                            <i class="bi bi-bookmark"></i> Сохранить
+                        </button>
+                    </div>
+                </div>
+
+                <div class="card-footer bg-transparent">
+                    <small class="text-muted">
+                        <i class="bi bi-clock"></i> Впишется в ваш интервал:
+                        <strong>{{ movie.duration }} мин</strong> из {{ available_time }} мин
+                    </small>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Сохранение результатов -->
+    <div class="row mt-5">
+        <div class="col-md-8 mx-auto">
+            {% if user.is_authenticated %}
+            <div class="alert alert-success" role="alert">
+                <h5><i class="bi bi-check-circle"></i> Результаты сохранены!</h5>
+                <p class="mb-0">
+                    Этот подбор сохранен в вашей истории.
+                    Вы можете посмотреть его позже в разделе
+                    <a href="{% url 'history' %}" class="alert-link">История подборов</a>.
+                </p>
+            </div>
+            {% else %}
+            <div class="alert alert-info" role="alert">
+                <h5><i class="bi bi-info-circle"></i> Сохраняйте историю подборов</h5>
+                <p class="mb-3">
+                    Войдите в систему, чтобы ваши подборы сохранялись автоматически.
+                    Вы сможете просматривать историю, сравнивать результаты и находить
+                    фильмы, которые подходили вам раньше.
+                </p>
+                <a href="/admin/login/?next={{ request.path }}" class="btn btn-primary">
+                    <i class="bi bi-box-arrow-in-right"></i> Войти в систему
+                </a>
+                <a href="{% url 'home' %}" class="btn btn-outline-primary ms-2">
+                    Продолжить как гость
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Советы по выбору -->
+    <div class="card border-primary mt-5">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0"><i class="bi bi-lightbulb"></i> Советы по выбору</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4">
+                    <h6><i class="bi bi-star text-warning"></i> Обратите внимание на рейтинг</h6>
+                    <p class="small">Фильмы с рейтингом выше 8.0 обычно получают высокие оценки зрителей.</p>
+                </div>
+                <div class="col-md-4">
+                    <h6><i class="bi bi-clock text-primary"></i> Учитывайте длительность</h6>
+                    <p class="small">Оставьте немного времени на паузы и обсуждение фильма после просмотра.</p>
+                </div>
+                <div class="col-md-4">
+                    <h6><i class="bi bi-heart text-danger"></i> Исследуйте жанры</h6>
+                    <p class="small">Попробуйте фильмы смежных жанров — возможно, откроете для себя новое направление.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% else %}
+    <!-- Если фильмы не найдены -->
+    <div class="text-center py-5">
+        <div class="mb-4">
+            <i class="bi bi-emoji-frown" style="font-size: 4rem; color: #6c757d;"></i>
+        </div>
+        <h3 class="mb-3">Подходящие фильмы не найдены</h3>
+        <p class="text-muted mb-4">
+            К сожалению, по вашим критериям не удалось найти фильмы.<br>
+            Попробуйте изменить параметры поиска:
+        </p>
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Рекомендации:</h5>
+                        <ul class="text-start">
+                            <li>Увеличьте доступное время</li>
+                            <li>Выберите больше жанров</li>
+                            <li>Попробуйте другое настроение</li>
+                            <li>Посмотрите все фильмы в <a href="{% url 'catalog' %}">каталоге</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="mt-4">
+            <a href="{% url 'home' %}" class="btn btn-primary btn-lg">
+                <i class="bi bi-arrow-clockwise"></i> Попробовать снова
+            </a>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Дополнительные действия -->
+    {% if movies %}
+    <div class="text-center mt-5 pt-4 border-top">
+        <h4 class="mb-4">Что дальше?</h4>
+        <div class="d-flex flex-wrap justify-content-center gap-3">
+            <a href="{% url 'home' %}" class="btn btn-primary">
+                <i class="bi bi-search"></i> Новый подбор
+            </a>
+            <a href="{% url 'catalog' %}" class="btn btn-outline-primary">
+                <i class="bi bi-film"></i> Весь каталог
+            </a>
+            <a href="{% url 'analytics' %}" class="btn btn-outline-success">
+                <i class="bi bi-graph-up"></i> Статистика
+            </a>
+            {% if user.is_authenticated %}
+            <a href="{% url 'history' %}" class="btn btn-outline-info">
+                <i class="bi bi-clock-history"></i> История
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .movie-card {
+        transition: all 0.3s ease;
+        border: 1px solid #dee2e6;
+    }
+
+    .movie-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        border-color: #0d6efd;
+    }
+
+    .badge {
+        font-weight: 500;
+        padding: 0.5em 0.8em;
+    }
+
+    .card-img-top {
+        border-bottom: 1px solid #dee2e6;
+    }
+</style>
+{% endblock %}
