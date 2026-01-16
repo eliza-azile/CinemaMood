@@ -1,5 +1,6 @@
 ﻿import os
 from pathlib import Path
+from decouple import config
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -77,3 +78,6 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+OMDB_API_KEY = config('OMDB_API_KEY')
+OMDB_BASE_URL = config('OMDB_BASE_URL', default='http://www.omdbapi.com/')
