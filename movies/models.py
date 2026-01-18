@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 
 class Genre(models.Model):
@@ -28,26 +29,25 @@ class Genre(models.Model):
 class Movie(models.Model):
     """Фильм в базе данных"""
     title = models.CharField(
-        max_length=200,
+        max_length=225,
         verbose_name="Название фильма"
     )
     description = models.TextField(
         blank=True,
         verbose_name="Описание"
     )
-    duration = models.IntegerField(
+    duration = models.PositiveIntegerField(
         verbose_name="Длительность (в минутах)",
         help_text="Сколько минут длится фильм"
     )
-    release_year = models.IntegerField(
+    release_year = models.PositiveIntegerField(
         verbose_name="Год выпуска"
     )
-    rating = models.DecimalField(
-        max_digits=3,
-        decimal_places=1,
+    rating = models.FloatField(
         default=0.0,
         verbose_name="Рейтинг",
-        help_text="От 0.0 до 10.0"
+        help_text="От 0.0 до 10.0",
+        validators=[MinValueValidator(0.0), MaxValueValidator(10.0)]
     )
     poster_url = models.URLField(
         max_length=500,
@@ -59,6 +59,13 @@ class Movie(models.Model):
         related_name='movies',
         verbose_name="Жанры",
         help_text="К каким жанрам относится фильм"
+    )
+    imdb_id = models.CharField(
+        max_length=20,
+        unique=True,
+        null=True,
+        blank=True,
+        verbose_name="IMDb ID"
     )
     
     class Meta:

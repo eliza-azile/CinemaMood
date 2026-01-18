@@ -1,6 +1,6 @@
 import requests
 from django.conf import settings
-from .models import Movie, Mood
+from .models import Movie, Genre
 
 def get_omdb_data(params):
     """
