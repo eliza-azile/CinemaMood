@@ -2,6 +2,7 @@ from django.core.management.base import BaseCommand
 from movies.omdb_client import search_movies_by_title, get_movie_by_id, omdb_to_movie_data
 from movies.models import Movie, Genre
 import time 
+import hashlib
 
 class Command(BaseCommand):
     help = 'Загружает фильмы из OMDb API в базу данных'
@@ -10,28 +11,20 @@ class Command(BaseCommand):
         parser.add_argument(
             '--search',
             type=str,
-            default='movie',
+            default='action',
             help='Поисковой запрос для загрузки фильмов'
         )
 
         parser.add_argument(
             '--count',
             type=int,
-            default=10,
+            default=5,
             help='Количество фильмов для загрузки'
-        )
-
-        parser.add_argument(
-            '--delay',
-            type=float,
-            default=1.0,
-            help='Задержка между запросами в секундах (OMDb требует минимум 1 секунду для бесплатного тарифа)'
         )
 
     def handle(self, *args, **options):
         search_query = options['search']
         max_count = options['count']
-        delay = max(options['delay'], 1.0)  # Минимум 1 секунда
 
         self.stdout.write(f"Ищем фильмы по запросу: '{search_query}'")
 
@@ -44,21 +37,24 @@ class Command(BaseCommand):
                 return
             
             created_count = 0
-            skipped_count = 0
 
             # Шаг 2: Для каждого найденного фильма получаем детали
             for i, result in enumerate(search_results[:max_count]):
-                time.sleep(delay)  # Соблюдаем лимиты API
+                time.sleep(1.0)  # Соблюдаем лимиты API
 
                 imdb_id = result.get('imdbID')
                 if not imdb_id:
                     continue
                 
-                # Проверяем, есть ли уже фильм с таким IMDb ID
-                if Movie.objects.filter(imdb_id=imdb_id).exists():
-                    self.stdout.write(f"Фильм '{result.get('Title')}' уже существует, пропускаем")
-                    skipped_count += 1
-                    continue
+                # Проверяем по названию и году
+                title = result.get('Title')
+                year_str = result.get('Year', '').split('-')[0]
+
+                if title and year_str and year_str.isdigit():
+                    year = int(year_str)
+                    if Movie.objects.filter(title=title, release_year=year).exists():
+                        self.stdout.write(f"Фильм '{title}' ({year}) уже существует, пропускаем")
+                        continue
 
                 # Получаем детальную информацию
                 try:
@@ -70,32 +66,49 @@ class Command(BaseCommand):
 
                     # Преобразуем данные
                     movie_data = omdb_to_movie_data(details)
-                    movie_data['imdb_id'] = imdb_id
-
+                    
+                    # Убираем imdb_id из данных
+                    if 'imdb_id' in movie_data:
+                        del movie_data['imdb_id']
+                    
                     # Создаем фильм
                     movie = Movie.objects.create(**movie_data)
 
-                    # OMDb возвращает жанры как строка "Action, Drama, Sci-Fi"
+                    # Обрабатываем жанры с уникальными slug
                     genres_str = details.get('Genre', '')
                     if genres_str and genres_str != 'N/A':
-                        for genre_name in genres_str.split(','):
-                            genre_name = genre_name.strip().lower()
-                            if genre_name:
-                                genre, _ = Genre.objects.get_or_create(name=genre_name)
-                                movie.genres.add(genre)
+                        genre_list = [g.strip() for g in genres_str.split(',') if g.strip()]
+                        
+                        for genre_name in genre_list:
+                            # Создаем более уникальный slug
+                            slug_base = genre_name.lower().replace(' ', '-').replace('&', 'and')
+                            slug = slug_base
+                            
+                            # Проверяем, существует ли уже slug
+                            counter = 1
+                            while Genre.objects.filter(slug=slug).exists():
+                                slug = f"{slug_base}-{counter}"
+                                counter += 1
+                            
+                            genre, created = Genre.objects.get_or_create(
+                                name=genre_name,
+                                defaults={'slug': slug}
+                            )
+                            
+                            if created:
+                                self.stdout.write(f"  Создан жанр: {genre_name} (slug: {slug})")
+                            
+                            movie.genres.add(genre)
 
                     created_count += 1
-                    self.stdout.write(f"[{created_count}] ✓ Добавлен: {movie.title}")
+                    self.stdout.write(f"[{created_count}] ✓ Добавлен: {movie.title} ({movie.release_year})")
 
                 except Exception as e:
-                    self.stdout.write(f"Ошибка при загрузке {result.get('Title')}: {e}")
+                    self.stdout.write(f"Ошибка при загрузке {result.get('Title')}: {str(e)[:100]}")
                     continue
             
-            # Сообщаем об итогах
             self.stdout.write(
-                self.style.SUCCESS(
-                    f"Загрузка завершена! Создано: {created_count}, Пропущено: {skipped_count}"
-                ) 
+                self.style.SUCCESS(f"Загрузка завершена! Создано: {created_count} фильмов")
             )
 
         except Exception as e:

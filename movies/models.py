@@ -60,14 +60,16 @@ class Movie(models.Model):
         verbose_name="Жанры",
         help_text="К каким жанрам относится фильм"
     )
+
     imdb_id = models.CharField(
         max_length=20,
-        unique=True,
-        null=True,
+        unique=True,  # важно для предотвращения дубликатов
         blank=True,
-        verbose_name="IMDb ID"
+        null=True,
+        verbose_name="IMDb ID",
+        help_text="Уникальный идентификатор фильма в базе IMDb"
     )
-    
+
     class Meta:
         verbose_name = "Фильм"
         verbose_name_plural = "Фильмы"

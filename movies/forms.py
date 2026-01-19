@@ -1,7 +1,35 @@
 from django import forms
 from .models import Genre, Movie
 
+
 class MovieSelectionForm(forms.Form):
+    MOOD_CHOICES = [
+        ('', 'Выберите настроение...'),
+        ('Боевик', '🎬 Боевик / Приключения'),
+        ('Комедия', '😂 Комедия'),
+        ('Драма', '🎭 Драма / Мелодрама'),
+        ('Фантастика', '🚀 Фантастика / Фэнтези'),
+        ('Триллер', '😱 Триллер / Ужасы'),
+        ('Анимация', '🧒 Анимация / Семейный'),
+        ('Криминал', '🔫 Криминал / Детектив'),
+    ]
+    
+    selected_mood = forms.ChoiceField(
+        choices=MOOD_CHOICES,
+        label='Какое у вас настроение?',
+        widget=forms.Select(attrs={'class': 'form-control form-select-lg'})
+    )
+    
+    available_time = forms.IntegerField(
+        label='Сколько времени у вас есть? (минут)',
+        min_value=30,
+        max_value=300,
+        widget=forms.NumberInput(attrs={
+            'class': 'form-control form-control-lg',
+            'placeholder': '120'
+        }),
+        initial=120
+    )
     """Форма для подбора фильмов по настроению и времени"""
     
     selected_genre = forms.ModelChoiceField(
@@ -47,80 +75,4 @@ class MovieSelectionForm(forms.Form):
             'placeholder': 'Например, 150'
         }),
         help_text="Если оставить пустым, будет использовано доступное время"
-    )
-
-
-class MovieSearchForm(forms.Form):
-    search_query = forms.CharField(
-        label='Поиск фильмов',
-        max_length=100,
-        widget=forms.TextInput(attrs={
-            'class': 'form-control',
-            'placeholder': 'Название фильма, режиссер, год...'
-        })
-    )
-
-
-class CatalogFilterForm(forms.Form):
-    """Форма фильтрации в каталоге"""
-    
-    genre = forms.ModelChoiceField(
-        queryset=Genre.objects.all(),
-        label='Жанр',
-        required=False,
-        widget=forms.Select(attrs={'class': 'form-control'}),
-        empty_label="Все жанры"
-    )
-    
-    min_year = forms.IntegerField(
-        label='Год от',
-        min_value=1900,
-        max_value=2024,
-        required=False,
-        widget=forms.NumberInput(attrs={
-            'class': 'form-control', 
-            'placeholder': '1900'
-        })
-    )
-    
-    max_year = forms.IntegerField(
-        label='Год до',
-        min_value=1900,
-        max_value=2024,
-        required=False,
-        widget=forms.NumberInput(attrs={
-            'class': 'form-control', 
-            'placeholder': '2024'
-        })
-    )
-    
-    min_rating = forms.FloatField(
-        label='Рейтинг от',
-        min_value=0.0,
-        max_value=10.0,
-        required=False,
-        widget=forms.NumberInput(attrs={
-            'class': 'form-control',
-            'placeholder': '0.0',
-            'step': '0.1'
-        })
-    )
-    
-    SORT_CHOICES = [
-        ('-rating', 'Рейтинг (высокий → низкий)'),
-        ('rating', 'Рейтинг (низкий → высокий)'),
-        ('-release_year', 'Год (новые → старые)'),
-        ('release_year', 'Год (старые → новые)'),
-        ('title', 'Название (А-Я)'),
-        ('-title', 'Название (Я-А)'),
-        ('duration', 'Длительность (короткие → длинные)'),
-        ('-duration', 'Длительность (длинные → короткие)'),
-    ]
-    
-    sort_by = forms.ChoiceField(
-        label='Сортировка',
-        choices=SORT_CHOICES,
-        required=False,
-        initial='-rating',
-        widget=forms.Select(attrs={'class': 'form-control'})
     )

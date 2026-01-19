@@ -213,9 +213,6 @@
             <a href="{% url 'catalog' %}" class="btn btn-outline-primary">
                 <i class="bi bi-film"></i> Весь каталог
             </a>
-            <a href="{% url 'analytics' %}" class="btn btn-outline-success">
-                <i class="bi bi-graph-up"></i> Статистика
-            </a>
             {% if user.is_authenticated %}
             <a href="{% url 'history' %}" class="btn btn-outline-info">
                 <i class="bi bi-clock-history"></i> История
