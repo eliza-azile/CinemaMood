@@ -4,8 +4,8 @@ from decouple import config
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = os.environ.get('SECRET_KEY', 'ваш-секретный-ключ-для-разработки')
-DEBUG = os.environ.get('DEBUG', 'True') == 'True'
+SECRET_KEY = config('SECRET_KEY', default='django-insecure-dev-key-change-in-production')
+DEBUG = config('DEBUG', default='False') == 'True'
 
 ALLOWED_HOSTS = ['cinemamood.onrender.com', '.onrender.com', 'localhost', '127.0.0.1', '*']
 
@@ -79,5 +79,5 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-OMDB_API_KEY = config('OMDB_API_KEY')
+OMDB_API_KEY = config('OMDB_API_KEY', default='demo-key-for-testing')
 OMDB_BASE_URL = config('OMDB_BASE_URL', default='http://www.omdbapi.com/')
