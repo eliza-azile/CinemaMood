@@ -79,5 +79,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-OMDB_API_KEY = config('OMDB_API_KEY', default='demo-key-for-testing')
+OMDB_API_KEY = config('OMDB_API_KEY', default='5df0abd4')
 OMDB_BASE_URL = config('OMDB_BASE_URL', default='http://www.omdbapi.com/')
+
+PORT = os.environ.get('PORT', '8000')
