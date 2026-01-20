@@ -1,7 +1,28 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth import login
+from django.contrib import messages
 from .models import Movie, Genre, UserSelection
 import random
+
+
+def register(request):
+    """Регистрация нового пользователя"""
+    if request.user.is_authenticated:
+        return redirect('home')
+    
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)  # Автоматически входим после регистрации
+            messages.success(request, 'Регистрация прошла успешно!')
+            return redirect('home')
+    else:
+        form = UserCreationForm()
+    
+    return render(request, 'register.html', {'form': form})
 
 def home(request):
     """Главная страница с формой подбора"""
@@ -31,15 +52,14 @@ def home(request):
                 else:
                     # Маппинг настроений на английские жанры
                     mood_to_genres = {
-                        'Боевик': ['action', 'adventure', 'боевик'],
-                        'Комедия': ['comedy', 'комедия'],
-                        'Драма': ['drama', 'romance', 'драма', 'мелодрама'],
-                        'Фантастика': ['sci-fi', 'fantasy', 'фантастика', 'фэнтези'],
-                        'Триллер': ['thriller', 'horror', 'триллер', 'ужасы'],
-                        'Анимация': ['animation', 'cartoon', 'family', 'анимация'],
-                        'Криминал': ['crime', 'detective', 'mystery', 'криминал'],
+                        'Боевик': ['action', 'adventure'],
+                        'Комедия': ['comedy'],
+                        'Драма': ['drama'],
+                        'Фантастика': ['sci-fi', 'fantasy'],
+                        'Триллер': ['thriller', 'horror'],
+                        'Анимация': ['animation'],
+                        'Криминал': ['crime'],
                     }
-                    
                     # Находим жанры для выбранного настроения
                     genre_names = mood_to_genres.get(selected_mood, [])
                     
@@ -64,9 +84,9 @@ def home(request):
                                 {
                                     'id': m.id, 
                                     'title': m.title, 
-                                    'poster_url': m.poster_url,
+                                    'poster_url': m.poster_url or '',  # Пустая строка вместо None
                                     'release_year': m.release_year,
-                                    'rating': m.rating,
+                                    'rating': float(m.rating) if m.rating else 0.0,  # Гарантируем float
                                     'duration': m.duration,
                                     'duration_hours': m.duration_hours
                                 }
@@ -74,6 +94,15 @@ def home(request):
                             ]
                             request.session['selected_mood'] = selected_mood
                             request.session['available_time'] = available_time
+                            
+                            # Сохраняем в историю для авторизованных пользователей
+                            if request.user.is_authenticated:
+                                selection = UserSelection.objects.create(
+                                    user=request.user,
+                                    selected_mood=selected_mood,
+                                    available_time=available_time
+                                )
+                                selection.matched_movies.set(matched_movies)
                             
                             return redirect('selection_results')
                         else:
